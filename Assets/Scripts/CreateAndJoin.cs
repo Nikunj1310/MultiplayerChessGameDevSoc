@@ -10,16 +10,15 @@ public class CreateAndJoin : MonoBehaviourPunCallbacks
 {
     [SerializeField] private TextMeshProUGUI inputCreate;
     [SerializeField] private TMP_InputField inputJoin;
-    [SerializeField]
-    RoomOptions roomOptions = new RoomOptions()
-    {
-        MaxPlayers = 2,
-        IsVisible = false,
-        IsOpen = true,
-        PlayerTtl = 60000, // 1 minute
-        EmptyRoomTtl = 60000 // 1 minute
-    };
     [SerializeField] private TextMeshProUGUI roomJoinOrCreateErrorMessage;
+    RoomOptions roomOptions = new RoomOptions()
+        {
+            MaxPlayers = 2,
+            IsVisible = false,
+            IsOpen = true,
+            PlayerTtl = 60000, // 1 minute
+            EmptyRoomTtl = 60000 // 1 minute
+        };
     void Start()
     {
         inputCreate.text = GenerateRandomRoomName();
@@ -32,8 +31,12 @@ public class CreateAndJoin : MonoBehaviourPunCallbacks
 
     public void CreateRoom()
     {
-
-
+        ExitGames.Client.Photon.Hashtable customRoomProperties = new ExitGames.Client.Photon.Hashtable();
+        customRoomProperties["creatorId"] = PhotonNetwork.LocalPlayer.UserId;
+        customRoomProperties["isManuallyCreated"] = true;
+        customRoomProperties["hasCreatorAssignedColor"] = false;
+        roomOptions.CustomRoomProperties = customRoomProperties;
+        roomOptions.CustomRoomPropertiesForLobby = new string[] { "creatorId", "isManuallyCreated", "hasCreatorAssignedColor" };
         PhotonNetwork.CreateRoom(inputCreate.text, roomOptions);
         Debug.Log("Creating room: " + inputCreate.text);
 
@@ -64,7 +67,13 @@ public class CreateAndJoin : MonoBehaviourPunCallbacks
     // TODO: Add a button for quick join, which joins a random room
     public void QuickJoinRoom()
     {
-        PhotonNetwork.JoinRandomOrCreateRoom(null, 2, MatchmakingMode.FillRoom, null, null, null, roomOptions);
+        ExitGames.Client.Photon.Hashtable RoomFilteringVar = new ExitGames.Client.Photon.Hashtable();
+        RoomFilteringVar["isManuallyCreated"] = false;
+        ExitGames.Client.Photon.Hashtable customRoomProperties = new ExitGames.Client.Photon.Hashtable();
+        customRoomProperties["creatorId"] = PhotonNetwork.LocalPlayer.UserId;
+        customRoomProperties["isManuallyCreated"] = false;
+        roomOptions.CustomRoomProperties = customRoomProperties;
+        PhotonNetwork.JoinRandomOrCreateRoom(RoomFilteringVar, 2, MatchmakingMode.FillRoom, null, null, null, roomOptions);
     }
 
     // TODO: Add error handling for room creation/joining failures, have a canvas that displays errors, and add a button what user can click to turn back to lobby, or close the canvas automatically after a few seconds
